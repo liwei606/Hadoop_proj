@@ -1,0 +1,28 @@
+#!/bin/bash
+
+#/usr/local/hadoop/bin/hadoop dfs -rmr /user/hadoop/output_0
+/usr/local/hadoop/bin/hadoop dfs -rmr /user/hadoop/output_1
+#/usr/local/hadoop/bin/hadoop dfs -copyFromLocal /home/hadoop/links-cleaned.txt /user/hadoop/output_0/
+
+for i in {0..9}
+do
+    echo "~~~~~~~~~~~~~~~~~~~~   Iteration $i   ~~~~~~~~~~~~~~~~~~~~"
+
+     rsh master rm /home/hadoop/missing
+    # rsh slave1 rm /home/hadoop/missing
+    # rsh slave2 rm /home/hadoop/missing
+
+    /usr/local/hadoop/bin/hadoop jar /usr/local/hadoop/contrib/streaming/hadoop-*streaming*.jar -D mapred.reduce.tasks=1 -file /home/hadoop/mapper1.py -mapper /home/hadoop/mapper1.py -file /home/hadoop/reducer1.py -reducer /home/hadoop/reducer1.py -input /user/hadoop/output_0/ -output /user/hadoop/output_1/
+    /usr/local/hadoop/bin/hadoop dfs -rmr /user/hadoop/output_0/
+    /usr/local/hadoop/bin/hadoop jar /usr/local/hadoop/contrib/streaming/hadoop-*streaming*.jar -D mapred.reduce.tasks=0 -file /home/hadoop/mapper2.py -mapper /home/hadoop/mapper2.py -input /user/hadoop/output_1/ -output /user/hadoop/output_0/
+    /usr/local/hadoop/bin/hadoop dfs -rmr /user/hadoop/output_1/
+
+    rsh master cat /home/hadoop/missing
+    # rsh slave1 cat /home/hadoop/missing
+    # rsh slave2 cat /home/hadoop/missing
+
+    /usr/local/hadoop/bin/hadoop dfs -cat /user/hadoop/output_0/* > ~/temp_$i
+
+done
+
+# /usr/local/hadoop/bin/hadoop dfs -cat /user/hadoop/output_0/*
